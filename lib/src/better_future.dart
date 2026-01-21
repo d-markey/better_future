@@ -15,10 +15,25 @@ class BetterFuture {
 
   /// Executes multiple [computations] in parallel and returns their results.
   ///
-  /// Computations can be:
-  /// * Constant values of type [T].
-  /// * Functions that return [T] or [Future<T>].
-  /// * Functions that take a [BetterResults] argument to depend on other computations.
+  /// The results are returned as a map where the keys match those in the
+  /// [computations] input.
+  ///
+  /// Computations must be functions that:
+  /// * return [T], [Future<T>], or [FutureOr<T>];
+  /// * accept 0 arguments (for independent tasks) or 1 argument (for dependent
+  /// tasks, in which case the argument must be `dynamic` or a [BetterResults]
+  /// object to access results from dependent computations).
+  ///
+  /// Example:
+  /// ```dart
+  /// final results = await BetterFuture.wait({
+  ///   'users': () => fetchUsers(),
+  ///   'stats': ($) async {
+  ///     final users = await $.users; // Depends on 'users'
+  ///     return calculateStats(users);
+  ///   },
+  /// });
+  /// ```
   ///
   /// If [eagerError] is true, the returned future fails immediately if any
   /// computation throws an error. Otherwise, it waits for all computations

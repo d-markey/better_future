@@ -2,7 +2,9 @@
 ///
 /// In a [BetterFuture.wait] block, the `$` object implements this interface.
 /// It allows computations to depend on each other by awaiting their keys.
-abstract class BetterResults {
+abstract interface class BetterResults {
+  BetterResults._();
+
   /// Resolves the result of the computation matching [key].
   ///
   /// If the computation for [key] has not finished yet, it will be awaited.

@@ -1,3 +1,8 @@
+## 1.0.1
+
+- Changed `BetterResults` to an `abstract interface class` for better encapsulation and testing support.
+- Improved API documentation for `BetterFuture.wait` with detailed usage examples; also clarified return map behavior and dependency management.
+
 ## 1.0.0
 
 - Initial release.

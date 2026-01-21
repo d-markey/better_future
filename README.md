@@ -20,7 +20,7 @@ Add `better_future` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  better_future: ^1.0.0
+  better_future: ^1.0.1
 ```
 
 ## Quick Start 🚀

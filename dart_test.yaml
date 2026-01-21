@@ -1,0 +1,10 @@
+platforms:
+  - vm
+  - chrome
+
+# Include both JS and WASM compilers for web tests
+# VM uses 'source' by default
+compilers:
+  - source
+  - dart2js
+  - dart2wasm

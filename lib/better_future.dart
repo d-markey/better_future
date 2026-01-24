@@ -4,4 +4,5 @@
 library;
 
 export 'src/better_future.dart';
+export 'src/better_outcome.dart';
 export 'src/better_results.dart';

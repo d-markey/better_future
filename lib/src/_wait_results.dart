@@ -4,6 +4,7 @@ import '_computation.dart';
 import '_future_casters.dart';
 import 'better_results.dart';
 
+// Results for [BetterFuture.wait].
 class Results implements BetterResults {
   Results(
     Map<String, FutureOr Function(BetterResults)> computations, {
@@ -17,7 +18,7 @@ class Results implements BetterResults {
       // initialize computations
       for (var entry in computations.entries) {
         _pending++;
-        _computations[entry.key] = Computation(
+        tasks[entry.key] = Computation(
           entry.key,
           entry.value,
           cleanUp,
@@ -25,7 +26,7 @@ class Results implements BetterResults {
         );
       }
       // start computations
-      for (var computation in _computations.values) {
+      for (var computation in tasks.values) {
         computation.compute(this);
       }
     }
@@ -54,7 +55,7 @@ class Results implements BetterResults {
   final bool _eagerError;
   int _pending = 0;
 
-  final _computations = <String, Computation>{};
+  final tasks = <String, Computation>{};
   final _completer = Completer<Map<String, Object?>>();
   Future<Map<String, Object?>> get future => _completer.future;
 
@@ -62,7 +63,7 @@ class Results implements BetterResults {
   void _fail(Object error, StackTrace? stackTrace) {
     if (!_completer.isCompleted) {
       _completer.completeError(error, stackTrace);
-      for (var computation in _computations.values) {
+      for (var computation in tasks.values) {
         computation.cleanup();
       }
     }
@@ -71,11 +72,9 @@ class Results implements BetterResults {
   // done
   void _done() {
     if (!_completer.isCompleted) {
-      final firstError = _computations.values
-          .where((c) => c.isFailure)
-          .firstOrNull;
+      final firstError = tasks.values.where((c) => c.isFailure).firstOrNull;
       if (firstError == null) {
-        _completer.complete(_computations.map((k, c) => MapEntry(k, c.result)));
+        _completer.complete(tasks.map((k, c) => MapEntry(k, c.result)));
       } else {
         _fail(firstError.error!, firstError.stackTrace);
       }
@@ -94,7 +93,7 @@ class Results implements BetterResults {
   Future<dynamic> operator [](String key) => get(key);
 
   @override
-  Future<T> get<T>(String key) => _computations[key]!.get().then(($) => $ as T);
+  Future<T> get<T>(String key) => tasks[key]!.future.then(($) => $ as T);
 }
 
 extension on Symbol {

@@ -1,3 +1,7 @@
+## 2.0.0
+
+- Implemented `BetterFuture.settle`: similar to `BetterFuture.wait`, but returns a map of `BetterOutcome<T>` instead of `T`. Each outcome contains either a computation result or an error. As a result, `BetterFuture.settle` never fails (though it may never complete).
+
 ## 1.0.1
 
 - Changed `BetterResults` to an `abstract interface class` for better encapsulation and testing support.

@@ -14,8 +14,8 @@ void main() async {
 
     // A computation depending on another result
     'message': ($) async {
-      final base = await $.greeting<String>();
-      return '$base BetterFuture!';
+      final greeting = await $.greeting<String>();
+      return '$greeting BetterFuture!';
     },
 
     // A task running in parallel

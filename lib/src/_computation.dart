@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import '_results.dart';
+import '_wait_results.dart';
 import 'better_results.dart';
 
 class Computation {
@@ -70,12 +70,9 @@ class Computation {
     }
   }
 
-  Future get() {
-    if (_pending case Future f) {
-      return f;
-    } else {
-      return Future.value(_pending);
-    }
+  Future get future {
+    final pending = _pending;
+    return (pending is Future) ? pending : Future.value(pending);
   }
 
   void cleanup() {

@@ -18,9 +18,3 @@ class SettledResults extends Results {
     }
   });
 }
-
-extension on Symbol {
-  static final _pattern = RegExp('Symbol\\("\\\$?([^"]+)=?"\\)');
-
-  String get $name => _pattern.firstMatch(toString())?.group(1) ?? '';
-}

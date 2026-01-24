@@ -111,6 +111,17 @@ final user = await $.current_user<User>();
 - **Eager (Default `false`)**: Set `eagerError: true` to fail immediately as soon as any computation throws an error.
 - **Lazy**: Wait for all computations to finish (or fail) before throwing the first encountered error.
 
+### Getting Detailed Outcomes
+
+BetterFuture also provides `BetterFuture.settle<T>(computations)`.
+
+This static method returns a `Map<String, BetterOutcome<T>>` which holds the final outcome of each computation. Concrete instances of `BetterOutcome<T>` can only be:
+
+* either a `BetterSuccess<T>` instance (successful computation);
+* or a `BetterFailure<T>` instance (failed computation).
+
+Keep in mind that `BetterFuture.settle<T>()` will only complete when all computations have completed. It will never complete with an error. But if a computation never completes, `BetterFuture.settle<T>()` will never complete either.
+
 ## Best Practices & Considerations ⚠️
 
 ### 🔄 Avoid Cyclic Dependencies

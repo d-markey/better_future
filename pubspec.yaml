@@ -1,6 +1,6 @@
 name: better_future
 description: Advanced asynchronous orchestration with named results, and automatic dependency management and cleanup.
-version: 2.0.0
+version: 2.0.1
 repository: https://github.com/d-markey/better_future
 funding:
   - https://github.com/sponsors/d-markey

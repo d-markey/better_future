@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:better_future/better_future.dart';
 
 /// This example demonstrates complex orchestration with inter-dependent tasks,
@@ -51,7 +52,7 @@ void main() async {
     );
 
     report('Result Map: $results');
-    report('Final String: ${results['final_result']}');
+    print('Final String: ${results['final_result']}');
   } catch (ex) {
     report('Caught expected error: $ex');
   }

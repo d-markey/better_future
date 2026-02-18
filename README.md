@@ -11,8 +11,8 @@
 - 🪄 **Dynamic Syntax**: Access results elegantly using `$.key` or `$.key<T>()`.
 - 🛡️ **Type Safety**: Explicit casting support with built-in primitives and custom type registration.
 - 🧹 **Automatic Cleanup**: Clean up resources if a parallel task fails.
-- ⚡ **Web & WASM Ready**: Fully compatible with JS and WASM compilation targets.
-- ⚡ **Error Orchestration**: Choose between eager or lazy failure.
+- 🌐 **Web & WASM Ready**: Fully compatible with JS and WASM compilation targets.
+- ⏩ **Error Orchestration**: Choose between eager or lazy failure.
 
 ## Installation 📥
 
@@ -20,7 +20,7 @@ Add `better_future` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  better_future: ^1.0.1
+  better_future: ^2.0.0
 ```
 
 ## Quick Start 🚀
@@ -72,10 +72,10 @@ final {
 The `BetterResults` object (conventionally named `$`) allows you to await other computations by their keys. If a computation hasn't finished yet, it will be awaited automatically.
 
 ```dart
-'b': ($) async {
+'c': ($) async {
   final a = await $.a; // Getter syntax (returns dynamic)
-  final c = await $.c<double>(); // Method syntax with casting
-  return a + c;
+  final b = await $.b<double>(); // Method syntax with casting
+  return a + b;
 }
 ```
 
@@ -108,47 +108,81 @@ final user = await $.current_user<User>();
 
 ### Error Handling
 
-- **Eager (Default `false`)**: Set `eagerError: true` to fail immediately as soon as any computation throws an error.
-- **Lazy**: Wait for all computations to finish (or fail) before throwing the first encountered error.
+- **Lazy (default)**: Wait for all computations to finish (or fail) before throwing the first encountered error.
+- **Eager**: Set `eagerError: true` to fail immediately as soon as any computation throws an error.
 
 ### Getting Detailed Outcomes
 
 BetterFuture also provides `BetterFuture.settle<T>(computations)`.
 
-This static method returns a `Map<String, BetterOutcome<T>>` which holds the final outcome of each computation. Concrete instances of `BetterOutcome<T>` can only be:
+This method returns a `Map<String, BetterOutcome<T>>` that holds the final outcome of each computation. Concrete instances of `BetterOutcome<T>` can only be:
 
-* either a `BetterSuccess<T>` instance (successful computation);
-* or a `BetterFailure<T>` instance (failed computation).
+* a `BetterSuccess<T>` instance (successful computation); or
+* a `BetterFailure<T>` instance (failed computation).
 
-Keep in mind that `BetterFuture.settle<T>()` will only complete when all computations have completed. It will never complete with an error. But if a computation never completes, `BetterFuture.settle<T>()` will never complete either.
+`BetterFuture.settle<T>()` will never complete with an error. Instead, it completes successfully once all computations have completed. Note that if any computation never completes, `BetterFuture.settle<T>()` will also never complete.
+
+Also note that `BetterFuture.settle<T>()` does not handle cleanup on errors. When applicable, you must implement proper cleanup to ensure that resources are released.
 
 ## Best Practices & Considerations ⚠️
 
 ### 🔄 Avoid Cyclic Dependencies
+
 Ensure your computations do not have circular dependencies. If computation `A` awaits `B`, and `B` awaits `A`, the orchestration will **deadlock** and never complete. Always design your workflows as a Directed Acyclic Graph (DAG).
 
 ### ⚡ Synchronous vs Asynchronous
+
 `BetterFuture` supports both synchronous values and `FutureOr` functions for maximum flexibility. However:
-* **Synchronous functions** run immediately when `BetterFuture.wait` is called.
+
+* **Synchronous functions** run immediately when `BetterFuture.wait` or `BetterFuture.settle` is called.
+
 * If a computation is CPU-intensive and implemented synchronously, it will **block the event loop**, potentially causing UI jank.
+
 * **Recommendation**: Use synchronous functions only for lightweight constants or simple state access. For heavy processing, always offload the work to an `async` function.
+
+### 🗜️ Bundle Size & Performance
+
+`BetterResults` relies on Dart's dynamic method and accessor calls via the `dynamic` type and `noSuchMethod()`. This enables constructs such as:
+
+```dart
+'b': (/* dynamic */ $) async {
+  final a = await $.a<int>();
+  //...
+}
+```
+
+However, this dynamic mechanism prevents the compiler from performing full tree-shaking, as some calls can only be resolved at runtime. This increases bundle size (due to additional retained code) and impacts performance (due to additional runtime resolution steps).
+
+If size or performance are important to you, you can eliminate dynamic calls by explicitly typing `$` as `BetterResults`. In that case, the code becomes slightly more verbose:
+
+```dart
+'b': (BetterResults $) async {
+  final a = await $.get<int>('a');
+  //...
+}
+```
+
 
 ## Why BetterFuture? 🤔
 
 While standard `Future.wait` is useful for simple parallelization, it falls short in complex real-world scenarios:
 
 *   **Orchestration, Simplified**: If task `B` depends on task `A`, you often have to split your `Future.wait` into multiple stages or nest `await` calls, which can accidentally serialize tasks that could have run in parallel. `BetterFuture` turns your computations into a self-organizing dependency graph.
+
 *   **No More Positional Fragility**: `Future.wait` returns a `List`. If you add a new future to the middle of the list, every index after it changes. `BetterFuture` uses **named keys**, making your code robust and easy to refactor.
+
 *   **Maximum Flexibility**: Handle mixed workloads with ease. Mix synchronous values and asynchronous tasks, manage heterogeneous result types in a single map, and leverage **Dart 3 Map patterns** for clean, declarative destructuring. The library normalizes synchronization automatically.
+
 *   **Unified Reliability**: Managing resource cleanup when one task in a group fails is difficult. `BetterFuture` handles the "rollback" logic for you via the `cleanUp` hook.
 
 ## Examples 📚
 
-Check out the `example/` folder for focused demonstrations:
+Check out the [`example/`](https://github.com/d-markey/better_future/tree/main/example) folder for focused demonstrations:
 - `main.dart`: Simple quick start.
 - `orchestration.dart`: Complex dependency graphs and timing.
 - `cleanup.dart`: Resource management and error recovery.
 - `destructuring.dart`: Dart 3 Map pattern usage.
+- `settle.dart`: Working with outcomes.
 
 ---
 

@@ -147,14 +147,14 @@ class BetterFuture {
   static void registerType<T>() => impl.registerType<T>();
 
   static FutureOr Function(BetterResults)? _waiter<T>(Function computation) {
-    if (computation.hasNoArguments<T>()) {
-      return (BetterResults _) => computation();
-    } else if (computation.acceptsBetterResults<T>()) {
+    if (computation.acceptsBetterResults<T>()) {
       if (computation.acceptsDynamic<T>()) {
         return (BetterResults r) => computation(r as dynamic);
       } else {
         return (BetterResults r) => computation(r);
       }
+    } else if (computation.hasNoArguments<T>()) {
+      return (BetterResults _) => computation();
     }
     return null;
   }

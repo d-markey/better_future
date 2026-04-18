@@ -1,3 +1,10 @@
+## 2.0.2
+
+- Provide extension methods on `Map<String, BetterOutcome<T>>` for easier access to results and errors.
+- Swapped function signature detection to avoid optional argument functions being accepted as no-argument functions.
+  - Functions with optional named arguments will be handled as no-argument functions.
+  - Functions with required named arguments are not supported.
+
 ## 2.0.1
 
 - Improved documentation.

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:better_future/better_future.dart';
 import 'package:test/test.dart';
 
-import 'utils.dart';
+import '_utils.dart';
 
 void main() {
   group('Empty tasks', () {
@@ -50,7 +50,7 @@ void main() {
           'c': () => delayed(() => 3),
         }, cleanUp: cleaned.add);
         throw Exception('Unexpected success: $results');
-      } on ExpectedTestException catch (ex) {
+      } on IntendedTestException catch (ex) {
         expect(ex.message, 'thrown from b');
         expect(cleaned, allOf(contains(1), contains(3)));
       }
@@ -67,7 +67,7 @@ void main() {
           'c': () => delayed(() => 3),
         }, cleanUp: cleaned.add);
         throw Exception('Unexpected success: $results');
-      } on ExpectedTestException catch (ex) {
+      } on IntendedTestException catch (ex) {
         expect(ex.message, 'thrown from b');
         expect(cleaned, allOf(contains(1), contains(3)));
       }
@@ -88,7 +88,7 @@ void main() {
           cleanUp: cleaned.add,
         );
         throw Exception('Unexpected success: $results');
-      } on ExpectedTestException catch (ex) {
+      } on IntendedTestException catch (ex) {
         expect(ex.message, 'thrown from b');
         // Wait long enough for background tasks A and C to finish
         // and trigger their cleanup callbacks.
@@ -110,7 +110,7 @@ void main() {
           cleanUp: cleaned.add,
         );
         throw Exception('Unexpected success: $results');
-      } on ExpectedTestException catch (ex) {
+      } on IntendedTestException catch (ex) {
         expect(ex.message, 'thrown from b');
         await Future.delayed(Duration(milliseconds: 500));
         expect(cleaned, allOf(contains(1), contains(3)));
@@ -148,7 +148,7 @@ void main() {
       expect(results, equals(const {'a': 1, 'b': 3, 'c': 9}));
     });
 
-    test('Destructure results', () async {
+    test('- Destructure results', () async {
       final {'a': int a, 'b': int b, 'c': int c} = await BetterFuture.wait({
         'a': () => delayed(() => 1),
         'b': ($) => delayed(() async => 1 + 2 * await $.a),
@@ -159,7 +159,7 @@ void main() {
       expect(c, 9);
     });
 
-    test('Destructure results, mixed types', () async {
+    test('- Destructure results, mixed types', () async {
       final {
         'a': String a,
         'b': int b,
@@ -187,7 +187,7 @@ void main() {
           'd': ($) => delayedSync(() => throwIntended('thrown from d')),
         }, cleanUp: cleaned.add);
         throw Exception('Unexpected results: $results');
-      } on ExpectedTestException catch (ex) {
+      } on IntendedTestException catch (ex) {
         expect(ex.message, 'thrown from d');
         expect(cleaned, allOf(contains(1), contains(3), contains(9)));
       }
@@ -204,7 +204,7 @@ void main() {
           'd': ($) => delayed(() => throwIntended('thrown from d')),
         }, cleanUp: cleaned.add);
         throw Exception('Unexpected results: $results');
-      } on ExpectedTestException catch (ex) {
+      } on IntendedTestException catch (ex) {
         expect(ex.message, 'thrown from d');
         expect(cleaned, allOf(contains(1), contains(3), contains(9)));
       }
@@ -225,7 +225,7 @@ void main() {
           cleanUp: cleaned.add,
         );
         throw Exception('Unexpected results: $results');
-      } on ExpectedTestException catch (ex) {
+      } on IntendedTestException catch (ex) {
         expect(ex.message, 'thrown from d');
         await Future.delayed(Duration(milliseconds: 1000));
         expect(cleaned, allOf(contains(1), contains(3), contains(9)));
@@ -246,7 +246,7 @@ void main() {
           cleanUp: cleaned.add,
         );
         throw Exception('Unexpected results: $results');
-      } on ExpectedTestException catch (ex) {
+      } on IntendedTestException catch (ex) {
         expect(ex.message, 'thrown from d');
         await Future.delayed(Duration(milliseconds: 500));
         expect(cleaned, allOf(contains(1), contains(3), contains(9)));

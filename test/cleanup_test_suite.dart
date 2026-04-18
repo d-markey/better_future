@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:better_future/better_future.dart';
 import 'package:test/test.dart';
 
-import 'utils.dart';
+import '_utils.dart';
 
 void main() {
   test('cleanup is called on eager failure', () async {
@@ -22,7 +22,7 @@ void main() {
       cleanUp: (val) => cleanedUp.add(val),
     );
 
-    await expectLater(future, throwsA(isA<ExpectedTestException>()));
+    await expectLater(future, throwsA(isA<IntendedTestException>()));
     // Give a tiny bit of time for the cleanup to process if needed,
     // though in this implementation it's immediate.
     expect(cleanedUp, contains(42));
@@ -46,7 +46,7 @@ void main() {
     );
 
     // Should wait for both to finish (approx 30ms)
-    await expectLater(future, throwsA(isA<ExpectedTestException>()));
+    await expectLater(future, throwsA(isA<IntendedTestException>()));
     expect(cleanedUp, contains(42));
   });
 
@@ -68,7 +68,7 @@ void main() {
       cleanUp: (val) => cleanedUp.add(val),
     );
 
-    await expectLater(future, throwsA(isA<ExpectedTestException>()));
+    await expectLater(future, throwsA(isA<IntendedTestException>()));
     // In lazy mode, we wait for A to finish before returning the error from B.
     // So 42 should already be in cleanedUp.
     expect(cleanedUp, contains(42));
@@ -93,7 +93,7 @@ void main() {
     );
 
     // Should fail quickly (approx 10ms)
-    await expectLater(future, throwsA(isA<ExpectedTestException>()));
+    await expectLater(future, throwsA(isA<IntendedTestException>()));
 
     // At this point, 'a' hasn't finished yet, so cleanedUp should be empty
     expect(cleanedUp, isEmpty);

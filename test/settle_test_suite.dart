@@ -1,7 +1,7 @@
 import 'package:better_future/better_future.dart';
 import 'package:test/test.dart';
 
-import 'utils.dart';
+import '_utils.dart';
 
 void main() {
   group('Empty tasks', () {
@@ -18,6 +18,8 @@ void main() {
         'b': () => delayed(() => 2),
         'c': () => delayed(() => 3),
       });
+      expect(results.results, hasLength(3));
+      expect(results.errors, isEmpty);
       expect(results['a'], isA<BetterSuccess>());
       expect((results['a'] as BetterSuccess).result, 1);
       expect(results['b'], isA<BetterSuccess>());
@@ -32,6 +34,8 @@ void main() {
         'b': () => 2,
         'c': () => 3,
       });
+      expect(results.results, hasLength(3));
+      expect(results.errors, isEmpty);
       expect(results['a'], isA<BetterSuccess>());
       expect((results['a'] as BetterSuccess).result, 1);
       expect(results['b'], isA<BetterSuccess>());
@@ -46,6 +50,8 @@ void main() {
         'b': () => delayed(() => 2),
         'c': () => delayed(() => 3),
       });
+      expect(results.results, hasLength(3));
+      expect(results.errors, isEmpty);
       expect(results['a'], isA<BetterSuccess>());
       expect((results['a'] as BetterSuccess).result, 1);
       expect(results['b'], isA<BetterSuccess>());
@@ -60,12 +66,14 @@ void main() {
         'b': () => throwIntended('thrown from b'),
         'c': () => delayed(() => 3),
       });
+      expect(results.results, hasLength(2));
+      expect(results.errors, hasLength(1));
       expect(results['a'], isA<BetterSuccess>());
       expect((results['a'] as BetterSuccess).result, 1);
       expect(results['b'], isA<BetterFailure>());
       expect(
         (results['b'] as BetterFailure).error,
-        isA<ExpectedTestException>(),
+        isA<IntendedTestException>(),
       );
       expect(results['c'], isA<BetterSuccess>());
       expect((results['c'] as BetterSuccess).result, 3);
@@ -77,12 +85,14 @@ void main() {
         'b': () => delayed(() => throwIntended('thrown from b')),
         'c': () => delayed(() => 3),
       });
+      expect(results.results, hasLength(2));
+      expect(results.errors, hasLength(1));
       expect(results['a'], isA<BetterSuccess>());
       expect((results['a'] as BetterSuccess).result, 1);
       expect(results['b'], isA<BetterFailure>());
       expect(
         (results['b'] as BetterFailure).error,
-        isA<ExpectedTestException>(),
+        isA<IntendedTestException>(),
       );
       expect(results['c'], isA<BetterSuccess>());
       expect((results['c'] as BetterSuccess).result, 3);
@@ -98,6 +108,8 @@ void main() {
         // 'c' depends on 'b'. BetterFuture handles this chain automatically.
         'c': ($) => delayed(() async => 3 * await $.b),
       });
+      expect(results.results, hasLength(3));
+      expect(results.errors, isEmpty);
       expect(results['a'], isA<BetterSuccess>());
       expect((results['a'] as BetterSuccess).result, 1);
       expect(results['b'], isA<BetterSuccess>());
@@ -112,6 +124,8 @@ void main() {
         'b': ($) => delayed(() async => 2 * await $.a + 1),
         'c': ($) => delayed(() async => 3 * await $.b),
       });
+      expect(results.results, hasLength(3));
+      expect(results.errors, isEmpty);
       expect(results['a'], isA<BetterSuccess>());
       expect((results['a'] as BetterSuccess).result, 1);
       expect(results['b'], isA<BetterSuccess>());
@@ -126,6 +140,8 @@ void main() {
         'b': (BetterResults $) => delayed(() async => 2 * await $['a'] + 1),
         'c': (BetterResults $) => delayed(() async => 3 * await $['b']),
       });
+      expect(results.results, hasLength(3));
+      expect(results.errors, isEmpty);
       expect(results['a'], isA<BetterSuccess>());
       expect((results['a'] as BetterSuccess).result, 1);
       expect(results['b'], isA<BetterSuccess>());
@@ -134,7 +150,7 @@ void main() {
       expect((results['c'] as BetterSuccess).result, 9);
     });
 
-    test('Destructure results', () async {
+    test('- Destructure results', () async {
       final {'a': a, 'b': b, 'c': c} = await BetterFuture.settle({
         'a': () => delayed(() => 1),
         'b': ($) => delayed(() async => 1 + 2 * await $.a),
@@ -148,7 +164,7 @@ void main() {
       expect((c as BetterSuccess).result, 9);
     });
 
-    test('Destructure results, mixed types', () async {
+    test('- Destructure results, mixed types', () async {
       final {
         'a': a,
         'b': b,
@@ -176,6 +192,8 @@ void main() {
         'c': ($) => delayed(() async => 3 * await $.b),
         'd': ($) => delayedSync(() => throwIntended('thrown from d')),
       });
+      expect(results.results, hasLength(3));
+      expect(results.errors, hasLength(1));
       expect(results['a'], isA<BetterSuccess>());
       expect((results['a'] as BetterSuccess).result, 1);
       expect(results['b'], isA<BetterSuccess>());
@@ -185,7 +203,7 @@ void main() {
       expect(results['d'], isA<BetterFailure>());
       expect(
         (results['d'] as BetterFailure).error,
-        isA<ExpectedTestException>(),
+        isA<IntendedTestException>(),
       );
     });
 
@@ -197,6 +215,8 @@ void main() {
         'c': ($) => delayed(() async => 3 * await $.b<int>()),
         'd': ($) => delayed(() => throwIntended('thrown from d')),
       });
+      expect(results.results, hasLength(3));
+      expect(results.errors, hasLength(1));
       expect(results['a'], isA<BetterSuccess>());
       expect((results['a'] as BetterSuccess).result, 1);
       expect(results['b'], isA<BetterSuccess>());
@@ -206,7 +226,7 @@ void main() {
       expect(results['d'], isA<BetterFailure>());
       expect(
         (results['d'] as BetterFailure).error,
-        isA<ExpectedTestException>(),
+        isA<IntendedTestException>(),
       );
     });
 
@@ -218,22 +238,31 @@ void main() {
         'c': ($) => delayed(() async => 3 * await $.b<int>()),
         'd': ($) => delayed(() => throwIntended('thrown from d')),
       });
+      expect(results.results, hasLength(1));
+      expect(results.errors, hasLength(3));
       expect(results['a'], isA<BetterSuccess>());
       expect((results['a'] as BetterSuccess).result, 1);
       expect(results['b'], isA<BetterFailure>());
       expect(results['c'], isA<BetterFailure>());
       expect(
         identical(
-          (results['b'] as BetterFailure).error as ExpectedTestException,
-          (results['c'] as BetterFailure).error as ExpectedTestException,
+          (results['b'] as BetterFailure).error as IntendedTestException,
+          (results['c'] as BetterFailure).error as IntendedTestException,
         ),
         true,
       );
       expect(results['d'], isA<BetterFailure>());
       expect(
-        ((results['d'] as BetterFailure).error as ExpectedTestException)
+        ((results['d'] as BetterFailure).error as IntendedTestException)
             .message,
         contains('from d'),
+      );
+      expect(
+        identical(
+          (results['b'] as BetterFailure).error as IntendedTestException,
+          (results['d'] as BetterFailure).error as IntendedTestException,
+        ),
+        false,
       );
     });
   });

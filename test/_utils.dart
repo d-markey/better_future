@@ -19,9 +19,9 @@ T delayedSync<T>(T Function() res) {
   return res();
 }
 
-class ExpectedTestException implements Exception {
-  ExpectedTestException(this.message);
+class IntendedTestException implements Exception {
+  IntendedTestException(this.message);
   final String message;
 }
 
-Never throwIntended(String message) => throw ExpectedTestException(message);
+Never throwIntended(String message) => throw IntendedTestException(message);

@@ -36,8 +36,31 @@ class BetterFailure<T> extends BetterOutcome<T> {
   /// If available, stack trace where the error occurred.
   final StackTrace? stackTrace;
 
-  /// Result of the operation (will throw).
+  /// Result of the operation (will throw [error]).
   @override
   T get result =>
       Error.throwWithStackTrace(error, stackTrace ?? StackTrace.current);
+}
+
+extension OutcomeMapExt<T> on Map<String, BetterOutcome<T>> {
+  /// Get succesful entries (key + result).
+  Iterable<MapEntry<String, T>> get results => entries
+      .where((e) => e.value is BetterSuccess<T>)
+      .map((e) => MapEntry(e.key, e.value.result));
+
+  /// Get failed entries (key + error).
+  Iterable<MapEntry<String, Object>> get errors => entries
+      .where((e) => e.value is BetterFailure<T>)
+      .map((e) => MapEntry(e.key, (e.value as BetterFailure<T>).error));
+
+  /// Get failed entries with stack traces (key + error/stack trace).
+  Iterable<MapEntry<String, ({Object error, StackTrace? stackTrace})>>
+  get errorsWithStackTrace => entries
+      .where((e) => e.value is BetterFailure<T>)
+      .map(
+        (e) => MapEntry(e.key, (
+          error: (e.value as BetterFailure<T>).error,
+          stackTrace: (e.value as BetterFailure<T>).stackTrace,
+        )),
+      );
 }

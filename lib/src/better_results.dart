@@ -2,7 +2,7 @@
 ///
 /// In a [BetterFuture.wait] block, the `$` object implements this interface.
 /// It allows computations to depend on each other by awaiting their keys.
-abstract interface class BetterResults {
+abstract interface class BetterResults<T> {
   BetterResults._();
 
   /// Resolves the result of the computation matching [key].
@@ -12,8 +12,8 @@ abstract interface class BetterResults {
 
   /// Resolves and casts the result of the computation matching [key].
   ///
-  /// This is equivalent to `results[key].then((v) => v as T)`.
-  Future<T> get<T>(String key);
+  /// This is equivalent to `results[key].then((v) => v as V)`.
+  Future<V> get<V>(String key);
 
   /// **Dynamic Access**
   ///

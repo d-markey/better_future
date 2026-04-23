@@ -14,7 +14,9 @@ class SettledResults extends Results {
       case BetterSuccess():
         return $.result as T;
       case BetterFailure():
-        Error.throwWithStackTrace($.error, $.stackTrace ?? StackTrace.current);
+        final stackTrace = $.stackTrace;
+        if (stackTrace == null) throw $.error;
+        Error.throwWithStackTrace($.error, stackTrace);
     }
   });
 }

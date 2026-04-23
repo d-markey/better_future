@@ -1,3 +1,8 @@
+## 2.0.3
+
+- Handle edge case where a settler could complete with a `Future<T>` instead of a `T`.
+- Sync/async routes are now handled by completion methods (except for sync errors).
+
 ## 2.0.2
 
 - Provide extension methods on `Map<String, BetterOutcome<T>>` for easier access to results and errors.

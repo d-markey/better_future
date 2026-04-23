@@ -1,3 +1,6 @@
+part 'better_outcome_failure.dart';
+part 'better_outcome_success.dart';
+
 /// Union class for outcomes: concrete instances can be either [BetterSuccess]
 /// or [BetterFailure].
 sealed class BetterOutcome<T> {
@@ -13,33 +16,9 @@ sealed class BetterOutcome<T> {
   /// by the operation; when [BetterFailure], throws the exception thrown by
   /// the operation.
   T get result;
-}
 
-/// Class for successful outcomes.
-class BetterSuccess<T> extends BetterOutcome<T> {
-  /// Constructs a successful outcome with [result].
-  BetterSuccess(this.result) : super._();
-
-  /// Result of the operation.
-  @override
-  final T result;
-}
-
-/// Class for failed outcomes.
-class BetterFailure<T> extends BetterOutcome<T> {
-  /// Constructs a failed outcome with [error] and optional [stackTrace].
-  BetterFailure(this.error, [this.stackTrace]) : super._();
-
-  /// Error thrown by the operation.
-  final Object error;
-
-  /// If available, stack trace where the error occurred.
-  final StackTrace? stackTrace;
-
-  /// Result of the operation (will throw [error]).
-  @override
-  T get result =>
-      Error.throwWithStackTrace(error, stackTrace ?? StackTrace.current);
+  /// Casts the result of an [outcome] to [T].
+  BetterOutcome<V> cast<V>();
 }
 
 extension OutcomeMapExt<T> on Map<String, BetterOutcome<T>> {
@@ -52,6 +31,12 @@ extension OutcomeMapExt<T> on Map<String, BetterOutcome<T>> {
   Iterable<MapEntry<String, Object>> get errors => entries
       .where((e) => e.value is BetterFailure<T>)
       .map((e) => MapEntry(e.key, (e.value as BetterFailure<T>).error));
+
+  /// Get succesful entries (key + result).
+  Iterable<V> getResults<V>() => entries
+      .where((e) => e.value is BetterSuccess)
+      .map((e) => e.value.result)
+      .whereType<V>();
 
   /// Get failed entries with stack traces (key + error/stack trace).
   Iterable<MapEntry<String, ({Object error, StackTrace? stackTrace})>>

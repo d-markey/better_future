@@ -56,26 +56,27 @@ class BetterFuture {
     void Function(T)? cleanUp,
   }) async {
     // check computation types
-    final workloads = <String, FutureOr Function(BetterResults)>{};
+    final invokers = <String, FutureOr Function(BetterResults)>{};
     for (var entry in computations.entries) {
       // == Fallback ==
       // If the strict type check fails, we try wrapping with `dynamic`.
       // This handles cases where the function return type is inferred as
       // `dynamic` or a super-type of `T` (like `num` for `int`).
       // The final `m.cast<String, T>()` will enforce type safety at runtime.
-      var invocation = _waiter<T>(entry.value) ?? _waiter<dynamic>(entry.value);
-      if (invocation == null) {
+      final invoker =
+          _invoker<T>(entry.value) ?? _invoker<dynamic>(entry.value);
+      if (invoker == null) {
         throw UnsupportedError(
           'Unsupported computation signature: ${entry.value.runtimeType}. '
           'Functions must take zero arguments or a single BetterResults/dynamic argument.',
         );
       }
-      workloads[entry.key] = invocation;
+      invokers[entry.key] = invoker;
     }
 
     // get results
     return impl.Results(
-      workloads,
+      invokers,
       eagerError: eagerError,
       cleanUp: (cleanUp == null) ? null : ($) => cleanUp($ as T),
     ).future.then((m) => m.cast<String, T>());
@@ -112,7 +113,7 @@ class BetterFuture {
     Map<String, Function> computations,
   ) async {
     // check computation types
-    final workloads =
+    final invokers =
         <String, FutureOr<BetterOutcome> Function(BetterResults)>{};
     for (var entry in computations.entries) {
       // == Fallback ==
@@ -120,23 +121,22 @@ class BetterFuture {
       // This handles cases where the function return type is inferred as
       // `dynamic` or a super-type of `T` (like `num` for `int`).
       // The final `m.cast<String, T>()` will enforce type safety at runtime.
-      var invocation =
+      final invoker =
           _settler<T>(entry.value) ?? _settler<dynamic>(entry.value);
-      if (invocation == null) {
+      if (invoker == null) {
         throw UnsupportedError(
           'Unsupported computation signature: ${entry.value.runtimeType}. '
           'Functions must take zero arguments or a single BetterResults/dynamic argument.',
         );
       }
-
-      workloads[entry.key] = invocation;
+      invokers[entry.key] = invoker;
     }
 
     // get results
-    return impl.SettledResults(workloads).future.then(
+    return impl.SettledResults(invokers).future.then(
       (m) => Map.fromEntries(
         m.entries.map(
-          (e) => MapEntry(e.key, resultCast<T>(e.value as BetterOutcome)),
+          (e) => MapEntry(e.key, (e.value as BetterOutcome).cast<T>()),
         ),
       ),
     );
@@ -146,7 +146,9 @@ class BetterFuture {
   /// This allows using `$.key<T>()` for types other than primitives.
   static void registerType<T>() => impl.registerType<T>();
 
-  static FutureOr Function(BetterResults)? _waiter<T>(Function computation) {
+  static FutureOr<T> Function(BetterResults)? _invoker<T>(
+    Function computation,
+  ) {
     if (computation.acceptsBetterResults<T>()) {
       if (computation.acceptsDynamic<T>()) {
         return (BetterResults r) => computation(r as dynamic);
@@ -162,36 +164,31 @@ class BetterFuture {
   static FutureOr<BetterOutcome<T>> Function(BetterResults)? _settler<T>(
     Function computation,
   ) {
-    final invocation = _waiter<T>(computation);
-    if (invocation == null) return null;
+    final invoker = _invoker<T>(computation);
+    if (invoker == null) return null;
 
     return (BetterResults results) {
       final completer = Completer<BetterOutcome<T>>();
-      // completion
-      void $complete(dynamic value) {
-        if (!completer.isCompleted) {
-          completer.complete(BetterSuccess<T>(value));
-        }
-      }
 
+      // completion
       void $completeError(Object error, [StackTrace? stackTrace]) {
         if (!completer.isCompleted) {
           completer.complete(BetterFailure<T>(error, stackTrace));
         }
       }
 
+      void $complete(dynamic value) {
+        if (value is Future) {
+          value.then($complete, onError: $completeError);
+        } else if (!completer.isCompleted) {
+          completer.complete(BetterSuccess<T>(value));
+        }
+      }
+
       // start computation
       try {
-        final res = invocation(results);
-        if (res case Future f) {
-          // async route
-          f.then($complete, onError: $completeError);
-        } else {
-          // sync route (no error)
-          $complete(res);
-        }
+        $complete(invoker(results));
       } catch (err, st) {
-        // sync route (error)
         $completeError(err, st);
       }
 

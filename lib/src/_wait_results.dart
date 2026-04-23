@@ -7,16 +7,16 @@ import 'better_results.dart';
 // Results for [BetterFuture.wait].
 class Results implements BetterResults {
   Results(
-    Map<String, FutureOr Function(BetterResults)> computations, {
+    Map<String, FutureOr Function(BetterResults)> invokers, {
     bool eagerError = false,
     void Function(Object)? cleanUp,
   }) : _eagerError = eagerError {
-    if (computations.isEmpty) {
+    if (invokers.isEmpty) {
       // done already
       _done();
     } else {
       // initialize computations
-      for (var entry in computations.entries) {
+      for (var entry in invokers.entries) {
         _pending++;
         tasks[entry.key] = Computation(
           entry.key,
@@ -27,7 +27,7 @@ class Results implements BetterResults {
       }
       // start computations
       for (var computation in tasks.values) {
-        computation.compute(this);
+        computation.run(this);
       }
     }
   }
